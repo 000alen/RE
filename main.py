@@ -1,9 +1,11 @@
 from RE.RegularExpression import RegularExpression
 
-expression = RegularExpression()
-expression.AddSequence('1234')
+e = RegularExpression()
 
-for element, current_states in expression.Run(input()):
-    print(current_states)
+e.Concatenation(
+    e.Literal('Hola, '),
+    e.Alternation(e.Literal('Alen'), e.Literal('Mundo')),
+    e.Kleene(e.Literal('!'))
+)
 
-print(expression.InputSet)
+print(e.__transitions__)

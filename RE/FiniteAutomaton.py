@@ -177,10 +177,10 @@ class FiniteAutomaton(Generic[ElementType]):
     ) -> Iterator[Tuple[ElementType, Set[int]]]:
         current_states = self.__initial_states__
         for element in sequence:
-            current_states = {
-                *self.GetTransition(element, state)
-                for state in current_states
-            }
+            new_states = set()
+            for state in current_states:
+                new_states.update(self.GetTransition(element, state))
+            current_states = new_states
             yield element, current_states
 
     def Last(
