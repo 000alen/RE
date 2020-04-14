@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, Set, Dict, List, Iterator, Tuple
 ElementType = TypeVar('ElementType')
 
 
-class FiniteAutomaton(Generic[ElementType]):
+class FiniteStateMachine(Generic[ElementType]):
     initial_states: Set[int]
     final_states: Set[int]
     default_states: Set[int]
@@ -23,21 +23,19 @@ class FiniteAutomaton(Generic[ElementType]):
         self.default_states = default_states
         self.transitions = {}
 
+    # Properties
     @property
     def InputSet(self) -> Set[ElementType]:
         return set(self.transitions)
 
     @property
+    def StateSet(self) -> Set[int]:
+        pass
+
+    # Initial State Operations
+    @property
     def InitialStates(self) -> Set[int]:
         return self.initial_states
-
-    @property
-    def FinalStates(self) -> Set[int]:
-        return self.final_states
-
-    @property
-    def DefaultStates(self) -> Set[int]:
-        return self.default_states
 
     def AddInitialStates(
         self,
@@ -54,6 +52,11 @@ class FiniteAutomaton(Generic[ElementType]):
         else:
             self.initial_states.clear()
 
+    # Final State Operations
+    @property
+    def FinalStates(self) -> Set[int]:
+        return self.final_states
+
     def AddFinalStates(
         self,
         final_states: Set[int]
@@ -68,6 +71,11 @@ class FiniteAutomaton(Generic[ElementType]):
             self.final_states.difference_update(final_states)
         else:
             self.final_states.clear()
+
+    # Default State Operations
+    @property
+    def DefaultStates(self) -> Set[int]:
+        return self.default_states
 
     def AddDefaultStates(
         self,
@@ -84,6 +92,7 @@ class FiniteAutomaton(Generic[ElementType]):
         else:
             self.default_states.clear()
 
+    # Transition Operations
     def HasTransition(
         self,
         element: ElementType,
@@ -123,20 +132,22 @@ class FiniteAutomaton(Generic[ElementType]):
         self,
         element: ElementType,
         from_state: int,
-        to_states: Set[int]
+        to_states: Set[int] = None
     ):
-        assert self.HasTransition(element, from_state)
-        self.transitions[element][from_state].difference_update(to_states)
-        if not (pointer := self.transitions[element][from_state]):
+        assert self.HasTransition(element, from_state, to_states)
+        if to_states is not None:
+            self.transitions[element][from_state].difference_update(to_states)
+        if to_states is None or not (pointer := self.transitions[element][from_state]):
             del pointer
 
+    # State Operations
     def HasState(
         self,
         state: int
     ) -> bool:
         return any(
-            state in to_states
-            for to_states in connections.values()
+            state in to_states or state == from_state
+            for from_state, to_states in connections.items()
             for connections in self.transitions.values()
         )
 
@@ -163,15 +174,17 @@ class FiniteAutomaton(Generic[ElementType]):
         self,
         state: int
     ):
+        assert self.HasState(state)  
         for element in self.transitions:
             for from_state, to_states in self.transitions[element].items():
                 if state in to_states:
                     self.RemoveTransition(element, from_state, state)
                 if from_state == state:
                     del self.transitions[element][state]
-                if not self.transitions[element]:
-                    del self.transitions[element]
+                if not (pointer := self.transitions[element]):
+                    del pointer
 
+    # Operations
     def Run(
         self,
         sequence: List[ElementType]
