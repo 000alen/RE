@@ -5,11 +5,11 @@ ElementType = TypeVar('ElementType')
 
 
 class FiniteAutomaton(Generic[ElementType]):
-    __initial_states__: Set[int]
-    __final_states__: Set[int]
-    __default_states__: Set[int]
+    initial_states: Set[int]
+    final_states: Set[int]
+    default_states: Set[int]
 
-    __transitions__: Dict[ElementType, Dict[int, Set[int]]]
+    transitions: Dict[ElementType, Dict[int, Set[int]]]
 
     def __init__(
         self,
@@ -18,71 +18,71 @@ class FiniteAutomaton(Generic[ElementType]):
         default_states: Set[int] = set()
     ):
         super().__init__()
-        self.__initial_states__ = initial_states
-        self.__final_states__ = final_states
-        self.__default_states__ = default_states
-        self.__transitions__ = {}
+        self.initial_states = initial_states
+        self.final_states = final_states
+        self.default_states = default_states
+        self.transitions = {}
 
     @property
     def InputSet(self) -> Set[ElementType]:
-        return set(self.__transitions__)
+        return set(self.transitions)
 
     @property
     def InitialStates(self) -> Set[int]:
-        return self.__initial_states__
+        return self.initial_states
 
     @property
     def FinalStates(self) -> Set[int]:
-        return self.__final_states__
+        return self.final_states
 
     @property
     def DefaultStates(self) -> Set[int]:
-        return self.__default_states__
+        return self.default_states
 
     def AddInitialStates(
         self,
         initial_states: Set[int]
     ):
-        self.__initial_states__.update(initial_states)
+        self.initial_states.update(initial_states)
 
     def RemoveInitialStates(
         self,
         initial_states: Set[int] = None
     ):
         if initial_states is not None:
-            self.__initial_states__.difference_update(initial_states)
+            self.initial_states.difference_update(initial_states)
         else:
-            self.__initial_states__.clear()
+            self.initial_states.clear()
 
     def AddFinalStates(
         self,
         final_states: Set[int]
     ):
-        self.__final_states__.update(final_states)
+        self.final_states.update(final_states)
 
     def RemoveFinalStates(
         self,
         final_states: Set[int] = None
     ):
         if final_states is not None:
-            self.__final_states__.difference_update(final_states)
+            self.final_states.difference_update(final_states)
         else:
-            self.__final_states__.clear()
+            self.final_states.clear()
 
     def AddDefaultStates(
         self,
         default_states: Set[int]
     ):
-        self.__default_states__.update(default_states)
+        self.default_states.update(default_states)
 
     def RemoveDefaultStates(
         self,
         default_states: Set[int] = None
     ):
         if default_states is not None:
-            self.__default_states__.difference_update(default_states)
+            self.default_states.difference_update(default_states)
         else:
-            self.__default_states__.clear()
+            self.default_states.clear()
 
     def HasTransition(
         self,
@@ -90,11 +90,12 @@ class FiniteAutomaton(Generic[ElementType]):
         from_state: int,
         to_states: Set[int] = None
     ) -> bool:
-        context = element in self.__transitions__ \
-            and from_state in self.__transitions__[element]
-        if to_states is not None:
-            return context and to_states in self.__transitions__[element][from_state]
-        return context
+        if (context := element in self.transitions and from_state in self.transitions[element]):
+            return context and (
+                to_states in self.transitions[element][from_state]
+                if to_states is not None
+                else True
+            )
 
     def AddTransition(
         self,
@@ -103,11 +104,11 @@ class FiniteAutomaton(Generic[ElementType]):
         to_states: Set[int]
     ):
         if self.HasTransition(element, from_state):
-            self.__transitions__[element][from_state].update(to_states)
+            self.transitions[element][from_state].update(to_states)
         elif element in self.InputSet:
-            self.__transitions__[element][from_state] = to_states
+            self.transitions[element][from_state] = to_states
         else:
-            self.__transitions__[element] = {from_state: to_states}
+            self.transitions[element] = {from_state: to_states}
 
     def GetTransition(
         self,
@@ -115,8 +116,8 @@ class FiniteAutomaton(Generic[ElementType]):
         from_state: int
     ) -> Set[int]:
         if self.HasTransition(element, from_state):
-            return self.__transitions__[element][from_state]
-        return self.__default_states__
+            return self.transitions[element][from_state]
+        return self.default_states
 
     def RemoveTransition(
         self,
@@ -125,9 +126,9 @@ class FiniteAutomaton(Generic[ElementType]):
         to_states: Set[int]
     ):
         assert self.HasTransition(element, from_state)
-        self.__transitions__[element][from_state].difference_update(to_states)
-        if not self.__transitions__[element][from_state]:
-            del self.__transitions__[element][from_state]
+        self.transitions[element][from_state].difference_update(to_states)
+        if not (pointer := self.transitions[element][from_state]):
+            del pointer
 
     def HasState(
         self,
@@ -136,7 +137,7 @@ class FiniteAutomaton(Generic[ElementType]):
         return any(
             state in to_states
             for to_states in connections.values()
-            for connections in self.__transitions__.values()
+            for connections in self.transitions.values()
         )
 
     def AddState(
@@ -153,29 +154,29 @@ class FiniteAutomaton(Generic[ElementType]):
     ) -> Dict[ElementType, Set[int]]:
         return {
             element: to_states
-            for from_state, to_states in self.__transitions__[element].items()
+            for from_state, to_states in self.transitions[element].items()
             if from_state == state
-            for element in self.__transitions__
+            for element in self.transitions
         }
 
     def RemoveState(
         self,
         state: int
     ):
-        for element in self.__transitions__:
-            for from_state, to_states in self.__transitions__[element].items():
+        for element in self.transitions:
+            for from_state, to_states in self.transitions[element].items():
                 if state in to_states:
                     self.RemoveTransition(element, from_state, state)
                 if from_state == state:
-                    del self.__transitions__[element][state]
-                if not self.__transitions__[element]:
-                    del self.__transitions__[element]
+                    del self.transitions[element][state]
+                if not self.transitions[element]:
+                    del self.transitions[element]
 
     def Run(
         self,
         sequence: List[ElementType]
     ) -> Iterator[Tuple[ElementType, Set[int]]]:
-        current_states = self.__initial_states__
+        current_states = self.initial_states
         for element in sequence:
             new_states = set()
             for state in current_states:
@@ -195,5 +196,4 @@ class FiniteAutomaton(Generic[ElementType]):
         self,
         sequence: List[ElementType]
     ) -> Set[int]:
-        last_states = self.Last(sequence)
-        return self.__final_states__.intersection(last_states)
+        return self.final_states.intersection(self.Last(sequence))
