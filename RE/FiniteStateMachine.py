@@ -30,7 +30,7 @@ class FiniteStateMachine(Generic[ElementType]):
 
     @property
     def StateSet(self) -> Set[int]:
-        pass
+        raise NotImplementedError()
 
     # Initial State Operations
     @property
@@ -99,7 +99,8 @@ class FiniteStateMachine(Generic[ElementType]):
         from_state: int,
         to_states: Set[int] = None
     ) -> bool:
-        if (context := element in self.transitions and from_state in self.transitions[element]):
+        context = element in self.transitions and from_state in self.transitions[element]
+        if context:
             return context and (
                 to_states in self.transitions[element][from_state]
                 if to_states is not None
@@ -137,7 +138,8 @@ class FiniteStateMachine(Generic[ElementType]):
         assert self.HasTransition(element, from_state, to_states)
         if to_states is not None:
             self.transitions[element][from_state].difference_update(to_states)
-        if to_states is None or not (pointer := self.transitions[element][from_state]):
+        pointer = self.transitions[element][from_state]
+        if to_states is None or not pointer:
             del pointer
 
     # State Operations
@@ -181,7 +183,8 @@ class FiniteStateMachine(Generic[ElementType]):
                     self.RemoveTransition(element, from_state, state)
                 if from_state == state:
                     del self.transitions[element][state]
-                if not (pointer := self.transitions[element]):
+                pointer = self.transitions[element]
+                if not pointer:
                     del pointer
 
     # Operations
