@@ -30,7 +30,12 @@ class FiniteStateMachine(Generic[ElementType]):
 
     @property
     def StateSet(self) -> Set[int]:
-        raise NotImplementedError()
+        # TODO: Refactor
+        state_set = set()
+        for _ in self.transitions.values():
+            for from_state, to_states in _.items():
+                state_set.update(to_states.union({from_state}))
+        return state_set.union(self.initial_states, self.default_states, self.final_states)
 
     # Initial State Operations
     @property
