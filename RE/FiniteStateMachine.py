@@ -1,7 +1,6 @@
-from typing import TypeVar, Generic, Set, Dict, List, Iterator, Tuple
+from typing import Dict, Generic, Iterator, List, Set, Tuple, TypeVar
 
-
-ElementType = TypeVar('ElementType')
+ElementType = TypeVar("ElementType")
 
 
 class FiniteStateMachine(Generic[ElementType]):
@@ -25,11 +24,11 @@ class FiniteStateMachine(Generic[ElementType]):
 
     # Properties
     @property
-    def InputSet(self) -> Set[ElementType]:
+    def input_set(self) -> Set[ElementType]:
         return set(self.transitions)
 
     @property
-    def StateSet(self) -> Set[int]:
+    def state_set(self) -> Set[int]:
         # TODO: Refactor
         state_set = set()
         for _ in self.transitions.values():
@@ -39,16 +38,16 @@ class FiniteStateMachine(Generic[ElementType]):
 
     # Initial State Operations
     @property
-    def InitialStates(self) -> Set[int]:
+    def initial_states(self) -> Set[int]:
         return self.initial_states
 
-    def AddInitialStates(
+    def add_initial_states(
         self,
         initial_states: Set[int]
     ):
         self.initial_states.update(initial_states)
 
-    def RemoveInitialStates(
+    def remove_initial_states(
         self,
         initial_states: Set[int] = None
     ):
@@ -59,16 +58,16 @@ class FiniteStateMachine(Generic[ElementType]):
 
     # Final State Operations
     @property
-    def FinalStates(self) -> Set[int]:
+    def final_states(self) -> Set[int]:
         return self.final_states
 
-    def AddFinalStates(
+    def add_final_states(
         self,
         final_states: Set[int]
     ):
         self.final_states.update(final_states)
 
-    def RemoveFinalStates(
+    def remove_final_states(
         self,
         final_states: Set[int] = None
     ):
@@ -79,16 +78,16 @@ class FiniteStateMachine(Generic[ElementType]):
 
     # Default State Operations
     @property
-    def DefaultStates(self) -> Set[int]:
+    def default_states(self) -> Set[int]:
         return self.default_states
 
-    def AddDefaultStates(
+    def add_default_states(
         self,
         default_states: Set[int]
     ):
         self.default_states.update(default_states)
 
-    def RemoveDefaultStates(
+    def remove_default_states(
         self,
         default_states: Set[int] = None
     ):
@@ -98,7 +97,7 @@ class FiniteStateMachine(Generic[ElementType]):
             self.default_states.clear()
 
     # Transition Operations
-    def HasTransition(
+    def has_transition(
         self,
         element: ElementType,
         from_state: int,
@@ -112,35 +111,35 @@ class FiniteStateMachine(Generic[ElementType]):
                 else True
             )
 
-    def AddTransition(
+    def add_transition(
         self,
         element: ElementType,
         from_state: int,
         to_states: Set[int]
     ):
-        if self.HasTransition(element, from_state):
+        if self.has_transition(element, from_state):
             self.transitions[element][from_state].update(to_states)
         elif element in self.InputSet:
             self.transitions[element][from_state] = to_states
         else:
             self.transitions[element] = {from_state: to_states}
 
-    def GetTransition(
+    def get_transition(
         self,
         element: ElementType,
         from_state: int
     ) -> Set[int]:
-        if self.HasTransition(element, from_state):
+        if self.has_transition(element, from_state):
             return self.transitions[element][from_state]
         return self.default_states
 
-    def RemoveTransition(
+    def remove_transition(
         self,
         element: ElementType,
         from_state: int,
         to_states: Set[int] = None
     ):
-        assert self.HasTransition(element, from_state, to_states)
+        assert self.has_transition(element, from_state, to_states)
         if to_states is not None:
             self.transitions[element][from_state].difference_update(to_states)
         pointer = self.transitions[element][from_state]
@@ -148,7 +147,7 @@ class FiniteStateMachine(Generic[ElementType]):
             del pointer
 
     # State Operations
-    def HasState(
+    def has_state(
         self,
         state: int
     ) -> bool:
@@ -158,15 +157,15 @@ class FiniteStateMachine(Generic[ElementType]):
             for connections in self.transitions.values()
         )
 
-    def AddState(
+    def add_state(
         self,
         state: int,
         connections: Dict[ElementType, Set[int]]
     ):
         for element, to_states in connections.items():
-            self.AddTransition(element, state, to_states)
+            self.add_transition(element, state, to_states)
 
-    def GetState(
+    def get_state(
         self,
         state: int
     ) -> Dict[ElementType, Set[int]]:
@@ -177,15 +176,15 @@ class FiniteStateMachine(Generic[ElementType]):
             for element in self.transitions
         }
 
-    def RemoveState(
+    def remove_state(
         self,
         state: int
     ):
-        assert self.HasState(state)  
+        assert self.has_state(state)  
         for element in self.transitions:
             for from_state, to_states in self.transitions[element].items():
                 if state in to_states:
-                    self.RemoveTransition(element, from_state, state)
+                    self.remove_transition(element, from_state, state)
                 if from_state == state:
                     del self.transitions[element][state]
                 pointer = self.transitions[element]
@@ -201,11 +200,11 @@ class FiniteStateMachine(Generic[ElementType]):
         for element in sequence:
             new_states = set()
             for state in current_states:
-                new_states.update(self.GetTransition(element, state))
+                new_states.update(self.get_transition(element, state))
             current_states = new_states
             yield element, current_states
 
-    def Last(
+    def last(
         self,
         sequence: List[ElementType]
     ) -> Set[input]:
@@ -213,8 +212,8 @@ class FiniteStateMachine(Generic[ElementType]):
             pass
         return last_states
 
-    def Accept(
+    def accepts(
         self,
         sequence: List[ElementType]
     ) -> Set[int]:
-        return self.final_states.intersection(self.Last(sequence))
+        return self.final_states.intersection(self.last(sequence))

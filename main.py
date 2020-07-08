@@ -1,16 +1,4 @@
-from RE.FiniteStateMachine import FiniteStateMachine
+from RE.RegularExpression import *
 
-FSM = FiniteStateMachine(
-    {0},
-    {1},
-    {-1}
-)
-
-for _ in [
-    FSM.InputSet,
-    FSM.StateSet,
-    FSM.InitialStates,
-    FSM.FinalStates,
-    FSM.DefaultStates
-]:
-    print(_)
+a = Literal("gr") + Optional(Literal("a"), Literal("e")) + Literal("y!")
+print(a)
