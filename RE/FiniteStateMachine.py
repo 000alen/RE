@@ -36,11 +36,6 @@ class FiniteStateMachine(Generic[ElementType]):
                 state_set.update(to_states.union({from_state}))
         return state_set.union(self.initial_states, self.default_states, self.final_states)
 
-    # Initial State Operations
-    @property
-    def initial_states(self) -> Set[int]:
-        return self.initial_states
-
     def add_initial_states(
         self,
         initial_states: Set[int]
@@ -56,11 +51,6 @@ class FiniteStateMachine(Generic[ElementType]):
         else:
             self.initial_states.clear()
 
-    # Final State Operations
-    @property
-    def final_states(self) -> Set[int]:
-        return self.final_states
-
     def add_final_states(
         self,
         final_states: Set[int]
@@ -75,11 +65,6 @@ class FiniteStateMachine(Generic[ElementType]):
             self.final_states.difference_update(final_states)
         else:
             self.final_states.clear()
-
-    # Default State Operations
-    @property
-    def default_states(self) -> Set[int]:
-        return self.default_states
 
     def add_default_states(
         self,
@@ -119,7 +104,7 @@ class FiniteStateMachine(Generic[ElementType]):
     ):
         if self.has_transition(element, from_state):
             self.transitions[element][from_state].update(to_states)
-        elif element in self.InputSet:
+        elif element in self.input_set:
             self.transitions[element][from_state] = to_states
         else:
             self.transitions[element] = {from_state: to_states}
