@@ -1,9 +1,4 @@
-from RE.RegularExpression import Literal, Optional, Zero, One
+from RE.RegularExpression import *
 
 
-binary = Literal("0") + Optional(Literal("b"), Literal("B")) + One(Optional(Literal("0"), Literal("1")))
-
-# binary = Literal("0") + (Literal("b") or Literal("B")) + One(Literal("0") or Literal("1"))
-
-
-print(binary.match(input(">>> ")))
+# signed_integer = (L("+") | L("-")) + O(L("0") >> L("9"))
