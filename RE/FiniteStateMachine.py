@@ -1,5 +1,8 @@
 from typing import Dict, Generic, Iterator, List, Set, Tuple, TypeVar
 
+
+EPSILON = "EPSILON"
+
 ElementType = TypeVar("ElementType")
 
 
@@ -22,7 +25,6 @@ class FiniteStateMachine(Generic[ElementType]):
         self.default_states = default_states
         self.transitions = {}
 
-    # Properties
     @property
     def input_set(self) -> Set[ElementType]:
         return set(self.transitions)
@@ -81,7 +83,6 @@ class FiniteStateMachine(Generic[ElementType]):
         else:
             self.default_states.clear()
 
-    # Transition Operations
     def has_transition(
         self,
         element: ElementType,
@@ -131,7 +132,6 @@ class FiniteStateMachine(Generic[ElementType]):
         if to_states is None or not pointer:
             del pointer
 
-    # State Operations
     def has_state(
         self,
         state: int
@@ -154,18 +154,24 @@ class FiniteStateMachine(Generic[ElementType]):
         self,
         state: int
     ) -> Dict[ElementType, Set[int]]:
-        return {
-            element: to_states
-            for from_state, to_states in self.transitions[element].items()
-            if from_state == state
-            for element in self.transitions
-        }
+        # return {
+        #     element: to_states
+        #     for from_state, to_states in self.transitions[element].items()
+        #     if from_state == state
+        #     for element in self.transitions
+        # }
+        x = {}
+        for element, connection in self.transitions.items():
+            for from_state, to_states in connection.items():
+                if state == from_state:
+                    x[element] = to_states
+        return x
 
     def remove_state(
         self,
         state: int
     ):
-        assert self.has_state(state)  
+        assert self.has_state(state)
         for element in self.transitions:
             for from_state, to_states in self.transitions[element].items():
                 if state in to_states:
@@ -176,24 +182,30 @@ class FiniteStateMachine(Generic[ElementType]):
                 if not pointer:
                     del pointer
 
-    # Operations
-    def Run(
+    def run(
         self,
         sequence: List[ElementType]
     ) -> Iterator[Tuple[ElementType, Set[int]]]:
         current_states = self.initial_states
-        for element in sequence:
+        i = 0
+        while i < len(sequence):
             new_states = set()
             for state in current_states:
-                new_states.update(self.get_transition(element, state))
+                connections = self.get_state(state)
+                if EPSILON in connections and connections[EPSILON] not in current_states:
+                    current_states.update(connections[EPSILON])
+                    yield EPSILON, current_states
+                    continue
+                new_states.update(self.get_transition(sequence[i], state))
             current_states = new_states
-            yield element, current_states
+            yield sequence[i], current_states
+            i += 1
 
     def last(
         self,
         sequence: List[ElementType]
     ) -> Set[input]:
-        for _, last_states in self.Run(sequence):
+        for _, last_states in self.run(sequence):
             pass
         return last_states
 
