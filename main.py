@@ -4,9 +4,10 @@ from RE.Utilities import show_finite_state_machine
 
 
 expressions = [
-    Literal("Hola") | Literal("Adios"),
-    (Literal("Hola") | Literal("Adios")) + Literal("!"),
-    (Literal("Hola") | Literal("Adios")) + One(Literal("!"))
+    Optional(Literal("+"), Literal("-")) + 
+    One(Literal("0") >> Literal("9")) +
+    Literal(".") +
+    Zero(Literal("0") >> Literal("9"))
 ]
 
 string = input("> ")

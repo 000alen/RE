@@ -46,6 +46,11 @@ class Expression:
     def __or__(self, expression: "Expression"):
         return Optional(self, expression)
 
+    def __rshift__(self, expression):
+        if isinstance(self, Literal) and isinstance(expression, Literal):
+            return Wildcard(self, expression)
+        raise Exception
+
     def compile(self):
         self.finite_state_machine = FiniteStateMachine(
             {0}, default_states={-1})
@@ -287,4 +292,25 @@ class Quantification(Expression):
 
 
 class Wildcard(Expression):
-    pass
+    from_literal: Literal
+    to_literal: Literal
+
+    def __init__(self, from_literal: Literal, to_literal: Literal):
+        super().__init__()
+        assert len(from_literal.literal) == 1
+        assert len(to_literal.literal) == 1
+
+        self.from_literal = from_literal
+        self.to_literal = to_literal
+
+    def build(self, finite_state_machine, base_state, counter, end_state=None):
+        base_state, counter = Optional(*[
+            Literal(chr(i))
+            for i in range(ord(self.from_literal.literal), ord(self.to_literal.literal) + 1)
+        ]).build(
+            finite_state_machine,
+            base_state,
+            counter,
+            end_state
+        )
+        return base_state, counter
