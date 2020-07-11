@@ -15,11 +15,17 @@ class FiniteStateMachine(Generic[ElementType]):
 
     def __init__(
         self,
-        initial_states: Set[int] = set(),
-        final_states: Set[int] = set(),
-        default_states: Set[int] = set()
+        initial_states: Set[int] = None,
+        final_states: Set[int] = None,
+        default_states: Set[int] = None
     ):
         super().__init__()
+        if initial_states is None:
+            initial_states = set()
+        if final_states is None:
+            final_states = set()
+        if default_states is None:
+            default_states = set()
         self.initial_states = initial_states
         self.final_states = final_states
         self.default_states = default_states

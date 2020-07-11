@@ -18,10 +18,12 @@ __all__ = (
 class Expression:
     finite_state_machine: FiniteStateMachine
     blocks: List["Operator"]
+    inner_blocks: List["Operator"]
 
     def __init__(self):
         self.finite_state_machine = None
         self.blocks = []
+        self.inner_blocks = []
 
     def __add__(self, expression: "Expression"):
         if isinstance(self, Group):
@@ -41,16 +43,13 @@ class Expression:
         else:
             return Group(self).__mul__(i)
 
-    def __or__(self, operator: "Operator"):
-        return Optional(self, operator)
+    def __or__(self, expression: "Expression"):
+        return Optional(self, expression)
 
     def compile(self):
         self.finite_state_machine = FiniteStateMachine(
             {0}, default_states={-1})
         base_state, counter = self.build(self.finite_state_machine, 0, 1)
-        for block in self.blocks:
-            base_state, counter = block.build(
-                self.finite_state_machine, base_state, counter)
         self.finite_state_machine.add_final_states({base_state})
 
     def match(self, string: str):
