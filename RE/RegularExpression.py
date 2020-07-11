@@ -11,14 +11,7 @@ __all__ = (
     "Zero",
     "One",
     "Quantification",
-    "Wildcard",
-    "G",
-    "L",
-    "C",
-    "Z",
-    "O"
-    "Q",
-    "W"
+    "Wildcard"
 )
 
 
@@ -51,16 +44,19 @@ class Expression:
     def __or__(self, operator: "Operator"):
         return Optional(self, operator)
 
+    def compile(self):
+        self.finite_state_machine = FiniteStateMachine(
+            {0}, default_states={-1})
+        base_state, counter = self.build(self.finite_state_machine, 0, 1)
+        for block in self.blocks:
+            base_state, counter = block.build(
+                self.finite_state_machine, base_state, counter)
+        self.finite_state_machine.add_final_states({base_state})
+
     def match(self, string: str):
         assert string != ""
         if self.finite_state_machine is None:
-            self.finite_state_machine = FiniteStateMachine(
-                {0}, default_states={-1})
-            base_state, counter = self.build(self.finite_state_machine, 0, 1)
-            for block in self.blocks:
-                base_state, counter = block.build(
-                    self.finite_state_machine, base_state, counter)
-            self.finite_state_machine.add_final_states({base_state})
+            self.compile()
         return self.finite_state_machine.accepts(string)
 
     def build(
@@ -293,11 +289,3 @@ class Quantification(Expression):
 
 class Wildcard(Expression):
     pass
-
-G = Group
-L = Literal
-C = Optional
-Z = Zero
-O = One
-Q = Quantification
-W = Wildcard
