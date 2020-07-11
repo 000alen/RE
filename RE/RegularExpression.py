@@ -2,12 +2,11 @@ from typing import List, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
 
-
 __all__ = (
     "Expression",
     "Group",
     "Literal",
-    "Optional",
+    "Choose",
     "Zero",
     "One",
     "Quantification",
@@ -17,8 +16,8 @@ __all__ = (
 
 class Expression:
     finite_state_machine: FiniteStateMachine
-    blocks: List["Operator"]
-    inner_blocks: List["Operator"]
+    blocks: List["Expression"]
+    inner_blocks: List["Expression"]
 
     def __init__(self):
         self.finite_state_machine = None
@@ -26,30 +25,25 @@ class Expression:
         self.inner_blocks = []
 
     def __add__(self, expression: "Expression"):
-        if isinstance(self, Group):
-            if isinstance(expression, Group):
+        if isinstance(self, Choose):
+            if isinstance(expression, Choose):
                 self.blocks += expression.blocks
             else:
                 self.blocks.append(expression)
             return self
-        elif isinstance(expression, Group):
+        elif isinstance(expression, Choose):
             expression.blocks.insert(0, self)
             return expression
-        return Group(self, expression)
+        return Choose(self, expression)
 
     def __mul__(self, i: int):
-        if isinstance(self, Group):
-            return Group(*(self.blocks * i))
-        else:
-            return Group(self).__mul__(i)
+        if isinstance(self, Choose):
+            self.blocks *= i
+            return self
+        return Choose(self).__mul__(i)
 
     def __or__(self, expression: "Expression"):
         return Optional(self, expression)
-
-    def __rshift__(self, expression):
-        if isinstance(self, Literal) and isinstance(expression, Literal):
-            return Wildcard(self, expression)
-        raise Exception
 
     def compile(self):
         self.finite_state_machine = FiniteStateMachine(
@@ -73,7 +67,7 @@ class Expression:
         raise NotImplementedError
 
 
-class Group(Expression):
+class Choose(Expression):
     blocks: List[Expression]
 
     def __init__(self, *blocks: Expression):
@@ -112,6 +106,11 @@ class Literal(Expression):
             return self
         return super().__add__(expression)
 
+    def __rshift__(self, expression: Expression):
+        if isinstance(expression, Literal):
+            return Wildcard(self, expression)
+        raise TypeError
+
     def build(
         self,
         finite_state_machine: FiniteStateMachine,
@@ -140,6 +139,12 @@ class Optional(Expression):
     def __init__(self, *inner_blocks: Expression):
         super().__init__()
         self.inner_blocks = inner_blocks
+
+    def __or__(self, expression: Expression):
+        if isinstance(expression, Optional):
+            self.inner_blocks += expression.inner_blocks
+            return self
+        return super().__or__(expression)
 
     def build(
         self,
@@ -241,7 +246,7 @@ class Quantification(Expression):
         counter: int,
         end_state: int = None
     ) -> Tuple[int, int]:
-        group = Group(*self.inner_blocks)
+        group = Choose(*self.inner_blocks)
         if self.exact is not None:
             assert self.exact > 0
             base_state, counter = (group * self.exact).build(
@@ -299,7 +304,6 @@ class Wildcard(Expression):
         super().__init__()
         assert len(from_literal.literal) == 1
         assert len(to_literal.literal) == 1
-
         self.from_literal = from_literal
         self.to_literal = to_literal
 

@@ -2,9 +2,8 @@ from RE.FiniteStateMachine import FiniteStateMachine
 from RE.RegularExpression import *
 from RE.Utilities import show_finite_state_machine
 
-
 expressions = [
-    Optional(Literal("+"), Literal("-")) + 
+    Choose(Literal("+"), Literal("-")) +
     One(Literal("0") >> Literal("9")) +
     Literal(".") +
     Zero(Literal("0") >> Literal("9"))
