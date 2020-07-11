@@ -1,5 +1,10 @@
-from typing import Dict, Generic, Iterator, Set, Tuple, TypeVar, Sequence
+from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar
 
+
+__all__ = (
+    "FiniteStateMachine",
+    "EPSILON"
+)
 
 EPSILON = "EPSILON"
 
