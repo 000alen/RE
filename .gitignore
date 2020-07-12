@@ -1,5 +1,6 @@
 .vscode/
 prototype.py
+debug/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

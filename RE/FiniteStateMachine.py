@@ -3,10 +3,12 @@ from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar
 
 __all__ = (
     "FiniteStateMachine",
-    "EPSILON"
+    "EPSILON",
+    "SIGMA"
 )
 
 EPSILON = "EPSILON"
+SIGMA = "SIGMA"
 
 ElementType = TypeVar("ElementType")
 
@@ -220,7 +222,6 @@ class FiniteStateMachine(Generic[ElementType]):
             the sequence of ElementType."""
         current_states = self.initial_states
         i = 0
-        EPSILON_flag = False
         while i < len(sequence):
             new_states = set()
             for state in current_states:

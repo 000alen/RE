@@ -3,25 +3,29 @@ from typing import List, Tuple
 from RE.FiniteStateMachine import EPSILON, FiniteStateMachine
 
 __all__ = (
-    "Expression",
+    "RegularExpression",
     "Group",
     "Literal",
     "Choose",
     "Zero",
     "One",
     "Quantification",
-    "Wildcard",
-    "Optional"
+    "Range",
+    "Optional",
+    "Wildcard"
 )
 
 
-class Expression:
+class RegularExpression:
     finite_state_machine: FiniteStateMachine
     blocks: List["Expression"]
     inner_blocks: List["Expression"]
 
-    def __init__(self):
-        self.finite_state_machine = None
+    def __init__(
+        self,
+        finite_state_machine: FiniteStateMachine = None
+    ):
+        self.finite_state_machine = finite_state_machine
         self.blocks = []
         self.inner_blocks = []
 
@@ -68,10 +72,10 @@ class Expression:
         raise NotImplementedError
 
 
-class Group(Expression):
-    blocks: List[Expression]
+class Group(RegularExpression):
+    blocks: List[RegularExpression]
 
-    def __init__(self, *blocks: Expression):
+    def __init__(self, *blocks: RegularExpression):
         super().__init__()
         self.blocks += blocks
 
@@ -94,22 +98,22 @@ class Group(Expression):
         return base_state, counter
 
 
-class Literal(Expression):
+class Literal(RegularExpression):
     literal: str
 
     def __init__(self, literal: str):
         super().__init__()
         self.literal = literal
 
-    def __add__(self, expression: Expression):
+    def __add__(self, expression: RegularExpression):
         if isinstance(expression, Literal):
             self.literal += expression.literal
             return self
         return super().__add__(expression)
 
-    def __rshift__(self, expression: Expression):
+    def __rshift__(self, expression: RegularExpression):
         if isinstance(expression, Literal):
-            return Wildcard(self, expression)
+            return Range(self, expression)
         raise TypeError
 
     def build(
@@ -134,14 +138,14 @@ class Literal(Expression):
         return base_state, counter
 
 
-class Choose(Expression):
-    inner_blocks: List[Expression]
+class Choose(RegularExpression):
+    inner_blocks: List[RegularExpression]
 
-    def __init__(self, *inner_blocks: Expression):
+    def __init__(self, *inner_blocks: RegularExpression):
         super().__init__()
         self.inner_blocks = inner_blocks
 
-    def __or__(self, expression: Expression):
+    def __or__(self, expression: RegularExpression):
         if isinstance(expression, Choose):
             self.inner_blocks += expression.inner_blocks
             return self
@@ -164,10 +168,10 @@ class Choose(Expression):
         return end_state, counter
 
 
-class Zero(Expression):
-    inner_blocks: List[Expression]
+class Zero(RegularExpression):
+    inner_blocks: List[RegularExpression]
 
-    def __init__(self, *inner_blocks: Expression):
+    def __init__(self, *inner_blocks: RegularExpression):
         super().__init__()
         self.inner_blocks = inner_blocks
 
@@ -196,10 +200,10 @@ class Zero(Expression):
         return initial_state, counter
 
 
-class One(Expression):
-    inner_blocks: List[Expression]
+class One(RegularExpression):
+    inner_blocks: List[RegularExpression]
 
-    def __init__(self, *inner_blocks: Expression):
+    def __init__(self, *inner_blocks: RegularExpression):
         super().__init__()
         self.inner_blocks = inner_blocks
 
@@ -225,13 +229,13 @@ class One(Expression):
         return base_state, counter
 
 
-class Quantification(Expression):
+class Quantification(RegularExpression):
     exact: int
     minimum: int
     maximum: int
-    inner_blocks: List[Expression]
+    inner_blocks: List[RegularExpression]
 
-    def __init__(self, *inner_blocks: Expression, exact: int = None, minimum: int = None, maximum: int = None):
+    def __init__(self, *inner_blocks: RegularExpression, exact: int = None, minimum: int = None, maximum: int = None):
         super().__init__()
         if exact == minimum == maximum == None:
             raise Exception
@@ -297,7 +301,7 @@ class Quantification(Expression):
         return base_state, counter
 
 
-class Wildcard(Expression):
+class Range(RegularExpression):
     from_literal: Literal
     to_literal: Literal
 
@@ -309,10 +313,10 @@ class Wildcard(Expression):
         self.to_literal = to_literal
 
     def build(
-        self, 
-        finite_state_machine: FiniteStateMachine, 
-        base_state: int, 
-        counter: int, 
+        self,
+        finite_state_machine: FiniteStateMachine,
+        base_state: int,
+        counter: int,
         end_state: int = None
     ) -> Tuple[int, int]:
         base_state, counter = Choose(*[
@@ -327,20 +331,26 @@ class Wildcard(Expression):
         return base_state, counter
 
 
-class Optional(Expression):
-    def __init__(self, *inner_blocks: Expression):
+class Optional(RegularExpression):
+    def __init__(self, *inner_blocks: RegularExpression):
         super().__init__()
         self.inner_blocks = inner_blocks
 
     def build(
-        self, 
-        finite_state_machine: FiniteStateMachine, 
-        base_state: int, 
-        counter: int, 
+        self,
+        finite_state_machine: FiniteStateMachine,
+        base_state: int,
+        counter: int,
         end_state: int = None
     ) -> Tuple[int, int]:
         initial_state = base_state
         group = Group(*self.inner_blocks)
-        base_state, counter = group.build(finite_state_machine, base_state, counter, end_state)
-        finite_state_machine.add_transition(EPSILON, initial_state, {base_state})
+        base_state, counter = group.build(
+            finite_state_machine, base_state, counter, end_state)
+        finite_state_machine.add_transition(
+            EPSILON, initial_state, {base_state})
         return base_state, counter
+
+
+class Wildcard(RegularExpression):
+    pass
