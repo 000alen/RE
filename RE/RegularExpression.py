@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from RE.FiniteStateMachine import FiniteStateMachine
+from RE.FiniteStateMachine import EPSILON, FiniteStateMachine
 
 __all__ = (
     "Expression",
@@ -10,7 +10,8 @@ __all__ = (
     "Zero",
     "One",
     "Quantification",
-    "Wildcard"
+    "Wildcard",
+    "Optional"
 )
 
 
@@ -25,25 +26,25 @@ class Expression:
         self.inner_blocks = []
 
     def __add__(self, expression: "Expression"):
-        if isinstance(self, Choose):
-            if isinstance(expression, Choose):
+        if isinstance(self, Group):
+            if isinstance(expression, Group):
                 self.blocks += expression.blocks
             else:
                 self.blocks.append(expression)
             return self
-        elif isinstance(expression, Choose):
+        elif isinstance(expression, Group):
             expression.blocks.insert(0, self)
             return expression
-        return Choose(self, expression)
+        return Group(self, expression)
 
     def __mul__(self, i: int):
-        if isinstance(self, Choose):
+        if isinstance(self, Group):
             self.blocks *= i
             return self
-        return Choose(self).__mul__(i)
+        return Group(self).__mul__(i)
 
     def __or__(self, expression: "Expression"):
-        return Optional(self, expression)
+        return Choose(self, expression)
 
     def compile(self):
         self.finite_state_machine = FiniteStateMachine(
@@ -67,7 +68,7 @@ class Expression:
         raise NotImplementedError
 
 
-class Choose(Expression):
+class Group(Expression):
     blocks: List[Expression]
 
     def __init__(self, *blocks: Expression):
@@ -133,7 +134,7 @@ class Literal(Expression):
         return base_state, counter
 
 
-class Optional(Expression):
+class Choose(Expression):
     inner_blocks: List[Expression]
 
     def __init__(self, *inner_blocks: Expression):
@@ -141,7 +142,7 @@ class Optional(Expression):
         self.inner_blocks = inner_blocks
 
     def __or__(self, expression: Expression):
-        if isinstance(expression, Optional):
+        if isinstance(expression, Choose):
             self.inner_blocks += expression.inner_blocks
             return self
         return super().__or__(expression)
@@ -246,7 +247,7 @@ class Quantification(Expression):
         counter: int,
         end_state: int = None
     ) -> Tuple[int, int]:
-        group = Choose(*self.inner_blocks)
+        group = Group(*self.inner_blocks)
         if self.exact is not None:
             assert self.exact > 0
             base_state, counter = (group * self.exact).build(
@@ -257,7 +258,7 @@ class Quantification(Expression):
             )
         elif self.minimum is not None and self.maximum is not None:
             assert self.minimum < self.maximum
-            base_state, counter = Optional(
+            base_state, counter = Choose(
                 *list(
                     group * i
                     for i in range(self.minimum, self.maximum + 1)
@@ -282,7 +283,7 @@ class Quantification(Expression):
                 counter,
             )
         elif self.maximum is not None:
-            base_state, counter = Optional(
+            base_state, counter = Choose(
                 *list(
                     group * i
                     for i in range(1, self.maximum + 1)
@@ -307,8 +308,14 @@ class Wildcard(Expression):
         self.from_literal = from_literal
         self.to_literal = to_literal
 
-    def build(self, finite_state_machine, base_state, counter, end_state=None):
-        base_state, counter = Optional(*[
+    def build(
+        self, 
+        finite_state_machine: FiniteStateMachine, 
+        base_state: int, 
+        counter: int, 
+        end_state: int = None
+    ) -> Tuple[int, int]:
+        base_state, counter = Choose(*[
             Literal(chr(i))
             for i in range(ord(self.from_literal.literal), ord(self.to_literal.literal) + 1)
         ]).build(
@@ -317,4 +324,23 @@ class Wildcard(Expression):
             counter,
             end_state
         )
+        return base_state, counter
+
+
+class Optional(Expression):
+    def __init__(self, *inner_blocks: Expression):
+        super().__init__()
+        self.inner_blocks = inner_blocks
+
+    def build(
+        self, 
+        finite_state_machine: FiniteStateMachine, 
+        base_state: int, 
+        counter: int, 
+        end_state: int = None
+    ) -> Tuple[int, int]:
+        initial_state = base_state
+        group = Group(*self.inner_blocks)
+        base_state, counter = group.build(finite_state_machine, base_state, counter, end_state)
+        finite_state_machine.add_transition(EPSILON, initial_state, {base_state})
         return base_state, counter
