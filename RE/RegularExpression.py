@@ -1,8 +1,12 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from RE.FiniteStateMachine import FiniteStateMachine, EPSILON, SIGMA
 
 __all__ = (
+    "DIGITS",
+    "LETTERS_LOWER",
+    "LETTERS_UPPER",
+    "LETTERS",
     "RegularExpression",
     "Group",
     "Literal",
@@ -14,6 +18,12 @@ __all__ = (
     "Optional",
     "Wildcard"
 )
+
+DIGITS = frozenset("0123456789")
+
+LETTERS_LOWER = frozenset("abcdefghijklmnopqrstuvwxyz")
+LETTERS_UPPER = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+LETTERS = LETTERS_LOWER | LETTERS_UPPER
 
 
 class RegularExpression:
@@ -353,15 +363,20 @@ class Optional(RegularExpression):
 
 
 class Wildcard(RegularExpression):
+    wildcard_set: Union[str, frozenset]
+
+    def __init__(self, wildcard_set: Union[str, frozenset] = SIGMA):
+        self.wildcard_set = wildcard_set
+
     def build(
-        self, 
-        finite_state_machine: FiniteStateMachine, 
+        self,
+        finite_state_machine: FiniteStateMachine,
         base_state: int,
-        counter: int, 
+        counter: int,
         end_state: int = None
     ) -> Tuple[int, int]:
         finite_state_machine.add_transition(
-            SIGMA,
+            self.wildcard_set,
             base_state,
             {counter}
             if end_state is None

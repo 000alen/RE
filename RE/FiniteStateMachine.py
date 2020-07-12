@@ -232,6 +232,9 @@ class FiniteStateMachine(Generic[ElementType]):
                     break
                 if SIGMA in connections:
                     new_states.update(connections[SIGMA])
+                for element in connections.keys():
+                    if type(element) is frozenset and sequence[i] in element:
+                        new_states.update(connections[element])
                 new_states.update(self.get_transition(sequence[i], state))
             else:
                 current_states = new_states
