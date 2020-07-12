@@ -1,9 +1,9 @@
 from json import dump, load
-
 from pygraphviz import AGraph
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import RegularExpression
+
+# TODO: Fix functions to support the new functionalities of FSM
 
 
 def show_finite_state_machine(finite_state_machine: FiniteStateMachine, name: str):
