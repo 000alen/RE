@@ -220,18 +220,20 @@ class FiniteStateMachine(Generic[ElementType]):
             the sequence of ElementType."""
         current_states = self.initial_states
         i = 0
+        EPSILON_flag = False
         while i < len(sequence):
             new_states = set()
             for state in current_states:
                 connections = self.get_state(state)
-                if EPSILON in connections and connections[EPSILON] not in current_states:
+                if EPSILON in connections and current_states & connections[EPSILON] != connections[EPSILON]:
                     current_states.update(connections[EPSILON])
                     yield EPSILON, current_states
-                    continue
+                    break
                 new_states.update(self.get_transition(sequence[i], state))
-            current_states = new_states
-            yield sequence[i], current_states
-            i += 1
+            else:
+                current_states = new_states
+                yield sequence[i], current_states
+                i += 1
 
     def last(
         self,
