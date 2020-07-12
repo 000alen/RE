@@ -230,6 +230,8 @@ class FiniteStateMachine(Generic[ElementType]):
                     current_states.update(connections[EPSILON])
                     yield EPSILON, current_states
                     break
+                if SIGMA in connections:
+                    new_states.update(connections[SIGMA])
                 new_states.update(self.get_transition(sequence[i], state))
             else:
                 current_states = new_states

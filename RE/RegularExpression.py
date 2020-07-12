@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from RE.FiniteStateMachine import EPSILON, FiniteStateMachine
+from RE.FiniteStateMachine import FiniteStateMachine, EPSILON, SIGMA
 
 __all__ = (
     "RegularExpression",
@@ -353,4 +353,23 @@ class Optional(RegularExpression):
 
 
 class Wildcard(RegularExpression):
-    pass
+    def build(
+        self, 
+        finite_state_machine: FiniteStateMachine, 
+        base_state: int,
+        counter: int, 
+        end_state: int = None
+    ) -> Tuple[int, int]:
+        finite_state_machine.add_transition(
+            SIGMA,
+            base_state,
+            {counter}
+            if end_state is None
+            else {end_state}
+        )
+        if end_state is None:
+            base_state = counter
+            counter += 1
+        else:
+            base_state = end_state
+        return base_state, counter
