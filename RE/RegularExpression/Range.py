@@ -1,12 +1,12 @@
 from typing import Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 from RE.RegularExpression.Literal import Literal
 from RE.RegularExpression.Choose import Choose
 
 
-class Range(RegularExpression):
+class Range(Expression):
     from_literal: Literal
     to_literal: Literal
 

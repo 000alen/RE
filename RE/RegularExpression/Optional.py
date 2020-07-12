@@ -1,12 +1,12 @@
 from typing import Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine, EPSILON
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 from RE.RegularExpression.Group import Group
 
 
-class Optional(RegularExpression):
-    def __init__(self, *inner_blocks: RegularExpression):
+class Optional(Expression):
+    def __init__(self, *inner_blocks: Expression):
         super().__init__()
         self.inner_blocks = inner_blocks
 

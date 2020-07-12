@@ -1,10 +1,10 @@
 from typing import Union, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine, SIGMA
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 
 
-class Wildcard(RegularExpression):
+class Wildcard(Expression):
     wildcard_set: Union[str, frozenset]
 
     def __init__(self, wildcard_set: Union[str, frozenset] = SIGMA):

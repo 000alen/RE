@@ -1,17 +1,17 @@
 from typing import List, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 
 
-class Choose(RegularExpression):
-    inner_blocks: List[RegularExpression]
+class Choose(Expression):
+    inner_blocks: List[Expression]
 
-    def __init__(self, *inner_blocks: RegularExpression):
+    def __init__(self, *inner_blocks: Expression):
         super().__init__()
         self.inner_blocks = inner_blocks
 
-    def __or__(self, expression: RegularExpression):
+    def __or__(self, expression: Expression):
         if isinstance(expression, Choose):
             self.inner_blocks += expression.inner_blocks
             return self

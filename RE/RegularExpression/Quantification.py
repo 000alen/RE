@@ -1,19 +1,19 @@
 from typing import List, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 from RE.RegularExpression.Group import Group
 from RE.RegularExpression.Choose import Choose
 from RE.RegularExpression.Zero import Zero
 
 
-class Quantification(RegularExpression):
+class Quantification(Expression):
     exact: int
     minimum: int
     maximum: int
-    inner_blocks: List[RegularExpression]
+    inner_blocks: List[Expression]
 
-    def __init__(self, *inner_blocks: RegularExpression, exact: int = None, minimum: int = None, maximum: int = None):
+    def __init__(self, *inner_blocks: Expression, exact: int = None, minimum: int = None, maximum: int = None):
         super().__init__()
         if exact == minimum == maximum == None:
             raise Exception

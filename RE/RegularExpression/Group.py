@@ -1,13 +1,13 @@
 from typing import List, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import RegularExpression
+from RE.RegularExpression.Expression import Expression
 
 
-class Group(RegularExpression):
-    blocks: List[RegularExpression]
+class Group(Expression):
+    blocks: List[Expression]
 
-    def __init__(self, *blocks: RegularExpression):
+    def __init__(self, *blocks: Expression):
         super().__init__()
         self.blocks += blocks
 

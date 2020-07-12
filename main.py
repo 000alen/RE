@@ -1,9 +1,6 @@
-from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression import *
-from RE.Utilities import show_finite_state_machine, export_finite_state_machine, import_finite_state_machine
+from RE.RegularExpression.Literal import Literal
+from RE.RegularExpression.Choose import Choose
 
-expression = Literal("\"") + Zero(Wildcard(LETTERS)) + Literal("\"")
+expression = Choose(Literal("0"), Literal("1"))
 expression.compile()
-show_finite_state_machine(expression.finite_state_machine, "./debug/0.png")
-
-print(expression.match(input("> ")))
+expression.match("0")

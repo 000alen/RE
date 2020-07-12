@@ -1,23 +1,24 @@
 from typing import Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
-from RE.RegularExpression.Range import Range
+from RE.RegularExpression.Expression import Expression
 
 
-class Literal(RegularExpression):
+class Literal(Expression):
     literal: str
 
     def __init__(self, literal: str):
         super().__init__()
         self.literal = literal
 
-    def __add__(self, expression: RegularExpression):
+    def __add__(self, expression: Expression):
         if isinstance(expression, Literal):
             self.literal += expression.literal
             return self
         return super().__add__(expression)
 
-    def __rshift__(self, expression: RegularExpression):
+    def __rshift__(self, expression: Expression):
+        from RE.RegularExpression.Range import Range
         if isinstance(expression, Literal):
             return Range(self, expression)
         raise TypeError
