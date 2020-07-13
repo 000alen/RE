@@ -27,17 +27,19 @@ class Literal(Expression):
         super().__init__()
         self.literal = literal
 
-    def __add__(self, expression: Expression):
+    def __rshift__(self, expression: "Literal") -> "Expression":
+        return self.range(expression)
+
+    def concatenate(self, expression: "Expression") -> "Expression":
         if isinstance(expression, Literal):
             self.literal += expression.literal
             return self
-        return super().__add__(expression)
+        return super().concatenate(expression)
 
-    def __rshift__(self, expression: Expression):
+    def range(self, expression: "Literal") -> "Expression":
         from RE.RegularExpression.Range import Range
-        if isinstance(expression, Literal):
-            return Range(self, expression)
-        raise TypeError
+        assert isinstance(expression, Literal)
+        return Range(self, expression)
 
     def build(
             self,

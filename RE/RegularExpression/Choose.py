@@ -28,11 +28,11 @@ class Choose(Expression):
         super().__init__()
         self.inner_blocks = list(inner_blocks)
 
-    def __or__(self, expression: Expression):
+    def alternate(self, expression: "Expression") -> "Expression":
         if isinstance(expression, Choose):
             self.inner_blocks += expression.inner_blocks
             return self
-        return super().__or__(expression)
+        return super().concatenate(expression)
 
     def build(
             self,

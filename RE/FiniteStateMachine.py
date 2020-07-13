@@ -219,32 +219,32 @@ class FiniteStateMachine(Generic[ElementType]):
             self,
             sequence: Sequence[ElementType],
             error_on_default: bool = True
-    ) -> Iterator[Tuple[ElementType, Set[int]]]:
+    ) -> Iterator[Tuple[int, ElementType, Set[int]]]:
         """iter of tuple of ElementType and set of int: Iterates the FSM through
             the sequence of ElementType."""
         current_states = self.initial_states
-        i = 0
-        while i < len(sequence):
+        position = 0
+        while position < len(sequence):
             new_states = set()
             if error_on_default and current_states == self.default_states:
-                yield ERROR, self.default_states
+                yield position, ERROR, self.default_states
                 return
             for state in current_states:
                 connections = self.get_state(state)
                 if EPSILON in connections and current_states & connections[EPSILON] != connections[EPSILON]:
                     current_states.update(connections[EPSILON])
-                    yield EPSILON, current_states
+                    yield position, EPSILON, current_states
                     break
                 if SIGMA in connections:
                     new_states.update(connections[SIGMA])
                 for element in connections.keys():
-                    if type(element) is frozenset and sequence[i] in element:
+                    if type(element) is frozenset and sequence[position] in element:
                         new_states.update(connections[element])
-                new_states.update(self.get_transition(sequence[i], state))
+                new_states.update(self.get_transition(sequence[position], state))
             else:
                 current_states = new_states
-                yield sequence[i], current_states
-                i += 1
+                yield position, sequence[position], current_states
+                position += 1
 
     def last(
             self,
@@ -254,7 +254,7 @@ class FiniteStateMachine(Generic[ElementType]):
         """set of int: Returns the last states of iterating the sequence of 
             ElementType though the FSM."""
         last_states = set()
-        for _, last_states in self.run(sequence, error_on_default):
+        for position, _, last_states in self.run(sequence, error_on_default):
             pass
         return last_states
 

@@ -19,5 +19,5 @@ base_types = {
 
 string = input("> ")
 for name, expression in base_types.items():
-    if expression.match(string):
-        print(name)
+    print(name.upper())
+    print(expression.match(string), end="\n\n")

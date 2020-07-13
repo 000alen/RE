@@ -27,6 +27,17 @@ class Group(Expression):
         super().__init__()
         self.blocks += blocks
 
+    def concatenate(self, expression: "Expression") -> "Expression":
+        if isinstance(expression, Group):
+            self.blocks += expression.blocks
+        else:
+            self.blocks.append(expression)
+        return self
+
+    def repeat(self, i: int) -> "Expression":
+        self.blocks *= i
+        return self
+
     def build(
             self,
             finite_state_machine: FiniteStateMachine,
