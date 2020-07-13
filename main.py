@@ -20,4 +20,4 @@ base_types = {
 string = input("> ")
 for name, expression in base_types.items():
     print(name.upper())
-    print(expression.match(string), end="\n\n")
+    print(expression.search(string), end="\n\n")

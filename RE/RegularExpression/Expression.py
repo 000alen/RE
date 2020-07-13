@@ -83,8 +83,16 @@ class Expression:
         if last_final_position is not None:
             return string[start: start + last_final_position]
 
-    def search(self):
-        raise NotImplementedError
+    def search(self, string: str, start: int = 0, end: int = None) -> Tuple[int, str]:
+        assert string
+        if self.finite_state_machine is None:
+            self.compile()
+        if end is None:
+            end = len(string)
+        for i in range(start, end):
+            match = self.match(string[i:end])
+            if match:
+                return i, match
 
     def split(self):
         raise NotImplementedError
