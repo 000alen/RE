@@ -48,6 +48,18 @@ class FiniteStateMachine(Generic[ElementType]):
         self.default_states = set() if default_states is None else default_states
         self.transitions = {}
 
+    def __contains__(self, state: int) -> bool:
+        return self.has_state(state)
+
+    def __setitem__(self, state: int, connections: Dict[ElementType, Set[int]]):
+        self.add_state(state, connections)
+
+    def __getitem__(self, state: int) -> Dict[ElementType, Set[int]]:
+        return self.get_state(state)
+
+    def __delitem__(self, state: int):
+        self.remove_state(state)
+
     @property
     def input_set(self) -> Set[ElementType]:
         """set of ElementType: All the input elements used in the FSM."""
