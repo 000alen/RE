@@ -8,12 +8,14 @@ from RE.RegularExpression.Zero import Zero
 
 _sign = Literal("+") | Literal("-")
 _digit = Literal("0") >> Literal("9")
+_exponent = (Literal('e') | Literal("E")) + Optional(_sign) + One(_digit)
 
 base_types = {
-    "integer": Optional(_sign) + One(_digit),
-    "decimal": Optional(_sign) + Zero(_digit) + Literal(".") + One(_digit),
+    "integer": Optional(_sign) + One(_digit) + _exponent,
+    "decimal": Optional(_sign) + Zero(_digit) + Literal(".") + One(_digit) + _exponent,
     "boolean": Literal("True") | Literal("False"),
     "undefined": Literal("Undefined"),
+    # TODO: Create a better definition for a string
     "string": Literal("\"") + Zero(Wildcard()) + Literal("\""),
 }
 
