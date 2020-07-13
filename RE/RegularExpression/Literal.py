@@ -3,8 +3,24 @@ from typing import Tuple
 from RE.FiniteStateMachine import FiniteStateMachine
 from RE.RegularExpression.Expression import Expression
 
+__all__ = (
+    "Literal"
+)
+
 
 class Literal(Expression):
+    """Literal expression implementation.
+
+    Attributes:
+        literal (str): The string literal to match.
+
+    Examples:
+        >>> from RE.RegularExpression.Literal import Literal
+        >>> expression = Literal("Hello, world!")
+        >>> expression.compile()
+        >>> print(expression.match(input("> ")))
+    """
+
     literal: str
 
     def __init__(self, literal: str):
@@ -24,11 +40,11 @@ class Literal(Expression):
         raise TypeError
 
     def build(
-        self,
-        finite_state_machine: FiniteStateMachine,
-        base_state: int,
-        counter: int,
-        end_state: int = None
+            self,
+            finite_state_machine: FiniteStateMachine,
+            base_state: int,
+            counter: int,
+            end_state: int = None
     ) -> Tuple[int, int]:
         for i, character in enumerate(self.literal, 1):
             finite_state_machine.add_transition(

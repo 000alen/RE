@@ -1,14 +1,15 @@
 from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar
 
-
 __all__ = (
-    "FiniteStateMachine",
     "EPSILON",
-    "SIGMA"
+    "SIGMA",
+    "ERROR",
+    "FiniteStateMachine"
 )
 
 EPSILON = "EPSILON"
 SIGMA = "SIGMA"
+ERROR = "ERROR"
 
 ElementType = TypeVar("ElementType")
 
@@ -36,10 +37,10 @@ class FiniteStateMachine(Generic[ElementType]):
     transitions: Dict[ElementType, Dict[int, Set[int]]]
 
     def __init__(
-        self,
-        initial_states: Set[int] = None,
-        final_states: Set[int] = None,
-        default_states: Set[int] = None
+            self,
+            initial_states: Set[int] = None,
+            final_states: Set[int] = None,
+            default_states: Set[int] = None
     ):
         super().__init__()
         self.initial_states = set() if initial_states is None else initial_states
@@ -58,19 +59,19 @@ class FiniteStateMachine(Generic[ElementType]):
         state_set = set()
         for connections in self.transitions.values():
             for from_state, to_states in connections.items():
-                state_set.update(to_states.union({from_state}))
-        return state_set.union(self.initial_states, self.default_states, self.final_states)
+                state_set.update(to_states | {from_state})
+        return state_set | self.initial_states | self.default_states | self.final_states
 
     def add_initial_states(
-        self,
-        initial_states: Set[int]
+            self,
+            initial_states: Set[int]
     ):
         """Add states to the initial states of the FSM."""
         self.initial_states.update(initial_states)
 
     def remove_initial_states(
-        self,
-        initial_states: Set[int] = None
+            self,
+            initial_states: Set[int] = None
     ):
         """Removes states from the initial states of the FSM."""
         if initial_states is not None:
@@ -79,15 +80,15 @@ class FiniteStateMachine(Generic[ElementType]):
             self.initial_states.clear()
 
     def add_final_states(
-        self,
-        final_states: Set[int]
+            self,
+            final_states: Set[int]
     ):
         """Adds states to the final states of the FSM."""
         self.final_states.update(final_states)
 
     def remove_final_states(
-        self,
-        final_states: Set[int] = None
+            self,
+            final_states: Set[int] = None
     ):
         """Removes states from the final states of the FSM."""
         if final_states is not None:
@@ -96,15 +97,15 @@ class FiniteStateMachine(Generic[ElementType]):
             self.final_states.clear()
 
     def add_default_states(
-        self,
-        default_states: Set[int]
+            self,
+            default_states: Set[int]
     ):
         """Adds states to the default states of the FSM."""
         self.default_states.update(default_states)
 
     def remove_default_states(
-        self,
-        default_states: Set[int] = None
+            self,
+            default_states: Set[int] = None
     ):
         """Removes states from the default states of the FSM."""
         if default_states is not None:
@@ -113,10 +114,10 @@ class FiniteStateMachine(Generic[ElementType]):
             self.default_states.clear()
 
     def has_transition(
-        self,
-        element: ElementType,
-        from_state: int,
-        to_states: Set[int] = None
+            self,
+            element: ElementType,
+            from_state: int,
+            to_states: Set[int] = None
     ) -> bool:
         """bool: Checks if a specific transition is defined in the FSM."""
         context = element in self.transitions and from_state in self.transitions[element]
@@ -128,10 +129,10 @@ class FiniteStateMachine(Generic[ElementType]):
             )
 
     def add_transition(
-        self,
-        element: ElementType,
-        from_state: int,
-        to_states: Set[int]
+            self,
+            element: ElementType,
+            from_state: int,
+            to_states: Set[int]
     ):
         """Adds a transition to the FSM."""
         if self.has_transition(element, from_state):
@@ -142,9 +143,9 @@ class FiniteStateMachine(Generic[ElementType]):
             self.transitions[element] = {from_state: to_states}
 
     def get_transition(
-        self,
-        element: ElementType,
-        from_state: int
+            self,
+            element: ElementType,
+            from_state: int
     ) -> Set[int]:
         """Returns a transition defined in the FSM."""
         if self.has_transition(element, from_state):
@@ -152,10 +153,10 @@ class FiniteStateMachine(Generic[ElementType]):
         return self.default_states
 
     def remove_transition(
-        self,
-        element: ElementType,
-        from_state: int,
-        to_states: Set[int] = None
+            self,
+            element: ElementType,
+            from_state: int,
+            to_states: Set[int] = None
     ):
         """Removes a transition from the FSM."""
         assert self.has_transition(element, from_state, to_states)
@@ -166,28 +167,28 @@ class FiniteStateMachine(Generic[ElementType]):
             del pointer
 
     def has_state(
-        self,
-        state: int
+            self,
+            state: int
     ) -> bool:
         """bool: Checks if a specific state is defined in the FSM."""
         return any(
             state in to_states or state == from_state
-            for from_state, to_states in connections.items()
             for connections in self.transitions.values()
+            for from_state, to_states in connections.items()
         )
 
     def add_state(
-        self,
-        state: int,
-        connections: Dict[ElementType, Set[int]]
+            self,
+            state: int,
+            connections: Dict[ElementType, Set[int]]
     ):
         """Adds a state and its connections to the FSM."""
         for element, to_states in connections.items():
             self.add_transition(element, state, to_states)
 
     def get_state(
-        self,
-        state: int
+            self,
+            state: int
     ) -> Dict[ElementType, Set[int]]:
         """dict of ElementType and set of int: Returns the connections of a 
             state in the FSM."""
@@ -199,15 +200,15 @@ class FiniteStateMachine(Generic[ElementType]):
         return connections
 
     def remove_state(
-        self,
-        state: int
+            self,
+            state: int
     ):
         """Removes a state and its connections from the FSM."""
         assert self.has_state(state)
         for element in self.transitions:
             for from_state, to_states in self.transitions[element].items():
                 if state in to_states:
-                    self.remove_transition(element, from_state, state)
+                    self.remove_transition(element, from_state, {state})
                 if from_state == state:
                     del self.transitions[element][state]
                 pointer = self.transitions[element]
@@ -215,8 +216,9 @@ class FiniteStateMachine(Generic[ElementType]):
                     del pointer
 
     def run(
-        self,
-        sequence: Sequence[ElementType]
+            self,
+            sequence: Sequence[ElementType],
+            error_on_default: bool = True
     ) -> Iterator[Tuple[ElementType, Set[int]]]:
         """iter of tuple of ElementType and set of int: Iterates the FSM through
             the sequence of ElementType."""
@@ -224,6 +226,9 @@ class FiniteStateMachine(Generic[ElementType]):
         i = 0
         while i < len(sequence):
             new_states = set()
+            if error_on_default and current_states == self.default_states:
+                yield ERROR, self.default_states
+                return
             for state in current_states:
                 connections = self.get_state(state)
                 if EPSILON in connections and current_states & connections[EPSILON] != connections[EPSILON]:
@@ -242,19 +247,22 @@ class FiniteStateMachine(Generic[ElementType]):
                 i += 1
 
     def last(
-        self,
-        sequence: Sequence[ElementType]
+            self,
+            sequence: Sequence[ElementType],
+            error_on_default: bool = True
     ) -> Set[int]:
         """set of int: Returns the last states of iterating the sequence of 
             ElementType though the FSM."""
-        for _, last_states in self.run(sequence):
+        last_states = set()
+        for _, last_states in self.run(sequence, error_on_default):
             pass
         return last_states
 
     def accepts(
-        self,
-        sequence: Sequence[ElementType]
+            self,
+            sequence: Sequence[ElementType],
+            error_on_default: bool = True
     ) -> Set[int]:
         """set of int: Returns the last states contained in the final states of
             the FSM after iterating through the sequence of ElementType."""
-        return self.final_states.intersection(self.last(sequence))
+        return self.final_states & self.last(sequence, error_on_default)

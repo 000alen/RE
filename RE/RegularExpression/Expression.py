@@ -1,7 +1,14 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
 
+__all__ = (
+    "DIGITS",
+    "LETTERS_LOWER",
+    "LETTERS_UPPER",
+    "LETTERS",
+    "Expression"
+)
 
 DIGITS = frozenset("0123456789")
 
@@ -11,13 +18,23 @@ LETTERS = LETTERS_LOWER | LETTERS_UPPER
 
 
 class Expression:
+    """Baseclass for Regular Expressions.
+
+    Examples:
+        >>> from RE.RegularExpression.Expression import Expression
+        >>> from RE.Utility import import_finite_state_machine
+        >>> expression = Expression(import_finite_state_machine("expression.json"))
+        >>> expression.compile()
+        >>> print(expression.match(input("> ")))
+    """
+
     finite_state_machine: FiniteStateMachine
     blocks: List["Expression"]
     inner_blocks: List["Expression"]
 
     def __init__(
-        self,
-        finite_state_machine: FiniteStateMachine = None
+            self,
+            finite_state_machine: FiniteStateMachine = None
     ):
         self.finite_state_machine = finite_state_machine
         self.blocks = []
@@ -60,10 +77,10 @@ class Expression:
         return self.finite_state_machine.accepts(string)
 
     def build(
-        self,
-        finite_state_machine: FiniteStateMachine,
-        base_state: int,
-        counter: int,
-        end_state: int = None
+            self,
+            finite_state_machine: FiniteStateMachine,
+            base_state: int,
+            counter: int,
+            end_state: int = None
     ) -> Tuple[int, int]:
         raise NotImplementedError

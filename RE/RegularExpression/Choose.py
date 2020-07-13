@@ -1,15 +1,32 @@
-from typing import List, Tuple
+from typing import Tuple
 
 from RE.FiniteStateMachine import FiniteStateMachine
 from RE.RegularExpression.Expression import Expression
 
+__all__ = (
+    "Choose"
+)
+
 
 class Choose(Expression):
-    inner_blocks: List[Expression]
+    """Choose expression implementation.
+
+    Attributes:
+        inner_blocks (list of Expression): The options to choose: at a given
+            point, there will be multiple paths in the FSM, and those paths are
+            defined by these blocks.
+
+    Examples:
+        >>> from RE.RegularExpression.Literal import Literal
+        >>> from RE.RegularExpression.Choose import Choose
+        >>> expression = Choose(Literal("0"), Literal("1"))
+        >>> expression.compile()
+        >>> print(expression.match(input("> ")))
+    """
 
     def __init__(self, *inner_blocks: Expression):
         super().__init__()
-        self.inner_blocks = inner_blocks
+        self.inner_blocks = list(inner_blocks)
 
     def __or__(self, expression: Expression):
         if isinstance(expression, Choose):
@@ -18,11 +35,11 @@ class Choose(Expression):
         return super().__or__(expression)
 
     def build(
-        self,
-        finite_state_machine: FiniteStateMachine,
-        base_state: int,
-        counter: int,
-        end_state: int = None
+            self,
+            finite_state_machine: FiniteStateMachine,
+            base_state: int,
+            counter: int,
+            end_state: int = None
     ) -> Tuple[int, int]:
         for i, inner_block in enumerate(self.inner_blocks, 1):
             end_state, counter = inner_block.build(
