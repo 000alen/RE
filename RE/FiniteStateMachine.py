@@ -234,9 +234,9 @@ class FiniteStateMachine(Generic[ElementType]):
     ) -> Iterator[Tuple[int, ElementType, Set[int]]]:
         """iter of tuple of ElementType and set of int: Iterates the FSM through
             the sequence of ElementType."""
-        current_states = self.initial_states
+        current_states = self.initial_states.copy()
         position = 0
-        while position < len(sequence):
+        while current_states:
             new_states = set()
             if error_on_default and current_states == self.default_states:
                 yield position, ERROR, self.default_states
@@ -247,16 +247,18 @@ class FiniteStateMachine(Generic[ElementType]):
                     current_states.update(connections[EPSILON])
                     yield position, EPSILON, current_states
                     break
-                if SIGMA in connections:
-                    new_states.update(connections[SIGMA])
-                for element in connections.keys():
-                    if type(element) is frozenset and sequence[position] in element:
-                        new_states.update(connections[element])
-                new_states.update(self.get_transition(sequence[position], state))
+                if position < len(sequence):
+                    if SIGMA in connections:
+                        new_states.update(connections[SIGMA])
+                    for element in connections.keys():
+                        if type(element) is frozenset and sequence[position] in element:
+                            new_states.update(connections[element])
+                    new_states.update(self.get_transition(sequence[position], state))
             else:
                 current_states = new_states
-                yield position, sequence[position], current_states
-                position += 1
+                if position < len(sequence):
+                    yield position, sequence[position], current_states
+                    position += 1
 
     def last(
             self,

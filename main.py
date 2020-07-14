@@ -1,6 +1,5 @@
 """A very basic definition of BaseTypes using RE."""
 
-from RE.Lexer import Lexer
 from RE.RegularExpression.Literal import Literal
 from RE.RegularExpression.One import One
 from RE.RegularExpression.Optional import Optional
@@ -20,6 +19,5 @@ base_type = {
     "whitespace": One(Literal(" "))
 }
 
-lexer = Lexer(**base_type)
-for i, token in lexer.lex(input("> ")):
-    print(i, token)
+for name, expression in base_type.items():
+    print(expression.match(input(name + "> ")))
