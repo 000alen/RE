@@ -2,6 +2,13 @@
 
 A work-in-progress python implementation for syntactic and semantic analysis (Finite State Machine, Regular Expression and Shift-Reduce Parser).
 
+## To-do list
+* Refactor `RE.FiniteStateMachine.FiniteStateMachine.run`.
+* Implement `RE.RegularExpression.Expression.match_all`.
+* Implement `RE.RegularExpression.Expression.search`.
+* Implement `RE.RegularExpression.Expression.search_all`.
+* Implement `RE.RegularExpression.Expression.split`.
+
 ## Usage
 
 ```python

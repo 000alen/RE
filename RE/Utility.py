@@ -39,7 +39,7 @@ def export_finite_state_machine(finite_state_machine: FiniteStateMachine, path: 
     data.update(
         initial_states=list(finite_state_machine.initial_states),
         final_states=list(finite_state_machine.final_states),
-        default_states=list(finite_state_machine.default_states)
+        error_states=list(finite_state_machine.error_states)
     )
     dump(data, open(path, "w"))
 
@@ -50,7 +50,7 @@ def import_finite_state_machine(path: str):
     data: Dict[Union[str, Tuple[int]], Union[List[int], Dict[int, List[int]]]] = load(open(path, "r"))
     initial_states = set(data.pop("initial_states"))
     final_states = set(data.pop("final_states"))
-    default_states = set(data.pop("default_states"))
+    error_states = set(data.pop("error_states"))
     transitions = {}
     for element, connections in data.items():
         if type(element) is tuple:
@@ -58,6 +58,6 @@ def import_finite_state_machine(path: str):
         transitions[element] = {}
         for from_state, to_states in connections.items():
             transitions[element][int(from_state)] = set(to_states)
-    finite_state_machine = FiniteStateMachine(initial_states, final_states, default_states)
+    finite_state_machine = FiniteStateMachine(initial_states, final_states, error_states)
     finite_state_machine.transitions = transitions
     return finite_state_machine

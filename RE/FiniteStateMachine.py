@@ -1,4 +1,4 @@
-from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar
+from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar, FrozenSet
 
 __all__ = (
     "EPSILON",
@@ -26,26 +26,26 @@ class FiniteStateMachine(Generic[ElementType]):
         final_states (set of int): Final states of the FSM: the FSM will accept
             a sequence of ElementType if at least one of the last states is 
             contained in this set.
-        default_states (set of int): Default (or error) states of the FSM: the
-            FSM will go to these states if there is no transition defined for
-            the current element and state.
+        error_states (set of int): Error states of the FSM: the FSM will go to
+            these states if there is no transition defined for the current
+            element and state.
     """
 
     initial_states: Set[int]
     final_states: Set[int]
-    default_states: Set[int]
+    error_states: Set[int]
     transitions: Dict[ElementType, Dict[int, Set[int]]]
 
     def __init__(
             self,
             initial_states: Set[int] = None,
             final_states: Set[int] = None,
-            default_states: Set[int] = None
+            error_states: Set[int] = None
     ):
         super().__init__()
         self.initial_states = set() if initial_states is None else initial_states
         self.final_states = set() if final_states is None else final_states
-        self.default_states = set() if default_states is None else default_states
+        self.error_states = set() if error_states is None else error_states
         self.transitions = {}
 
     def __contains__(self, state: int) -> bool:
@@ -72,7 +72,7 @@ class FiniteStateMachine(Generic[ElementType]):
         for connections in self.transitions.values():
             for from_state, to_states in connections.items():
                 state_set.update(to_states | {from_state})
-        return state_set | self.initial_states | self.default_states | self.final_states
+        return state_set | self.initial_states | self.error_states | self.final_states
 
     def add_initial_states(
             self,
@@ -108,22 +108,22 @@ class FiniteStateMachine(Generic[ElementType]):
         else:
             self.final_states.clear()
 
-    def add_default_states(
+    def add_error_states(
             self,
-            default_states: Set[int]
+            error_states: Set[int]
     ):
         """Adds states to the default states of the FSM."""
-        self.default_states.update(default_states)
+        self.error_states.update(error_states)
 
-    def remove_default_states(
+    def remove_error_states(
             self,
-            default_states: Set[int] = None
+            error_states: Set[int] = None
     ):
         """Removes states from the default states of the FSM."""
-        if default_states is not None:
-            self.default_states.difference_update(default_states)
+        if error_states is not None:
+            self.error_states.difference_update(error_states)
         else:
-            self.default_states.clear()
+            self.error_states.clear()
 
     def has_transition(
             self,
@@ -157,12 +157,14 @@ class FiniteStateMachine(Generic[ElementType]):
     def get_transition(
             self,
             element: ElementType,
-            from_state: int
+            from_state: int,
+            consider_error_states: bool = False
     ) -> Set[int]:
         """Returns a transition defined in the FSM."""
         if self.has_transition(element, from_state):
             return self.transitions[element][from_state]
-        return self.default_states
+        if consider_error_states:
+            return self.error_states
 
     def remove_transition(
             self,
@@ -229,54 +231,49 @@ class FiniteStateMachine(Generic[ElementType]):
 
     def run(
             self,
-            sequence: Sequence[ElementType],
-            error_on_default: bool = True
-    ) -> Iterator[Tuple[int, ElementType, Set[int]]]:
+            sequence: Sequence[ElementType]
+    ) -> Iterator[Tuple[ElementType, FrozenSet[int]]]:
         """iter of tuple of ElementType and set of int: Iterates the FSM through
             the sequence of ElementType."""
         current_states = self.initial_states.copy()
-        position = 0
-        while current_states:
-            new_states = set()
-            if error_on_default and current_states == self.default_states:
-                yield position, ERROR, self.default_states
-                return
-            for state in current_states:
+        new_states = set()
+        for element in sequence:
+            if not current_states:
+                break
+            state = current_states.pop() if current_states else None
+            while state is not None:
                 connections = self.get_state(state)
-                if EPSILON in connections and current_states & connections[EPSILON] != connections[EPSILON]:
+                if EPSILON in connections:
                     current_states.update(connections[EPSILON])
-                    yield position, EPSILON, current_states
-                    break
-                if position < len(sequence):
-                    if SIGMA in connections:
-                        new_states.update(connections[SIGMA])
-                    for element in connections.keys():
-                        if type(element) is frozenset and sequence[position] in element:
-                            new_states.update(connections[element])
-                    new_states.update(self.get_transition(sequence[position], state))
-            else:
-                current_states = new_states
-                if position < len(sequence):
-                    yield position, sequence[position], current_states
-                    position += 1
+                if SIGMA in connections:
+                    new_states.update(connections[SIGMA])
+                if element in connections:
+                    new_states.update(connections[element])
+                # TODO: Refactor
+                if any(type(_) is frozenset for _ in connections.keys()):
+                    for element_set in connections.keys():
+                        if type(element_set) is frozenset and element in element_set:
+                            new_states.update(connections[element_set])
+                state = current_states.pop() if current_states else None
+            current_states.update(new_states)
+            new_states.clear()
+            yield element, frozenset(current_states)
 
     def last(
             self,
-            sequence: Sequence[ElementType],
-            error_on_default: bool = True
-    ) -> Set[int]:
+            sequence: Sequence[ElementType]
+    ) -> FrozenSet[int]:
         """set of int: Returns the last states of iterating the sequence of 
             ElementType though the FSM."""
-        last_states = set()
-        for position, _, last_states in self.run(sequence, error_on_default):
+        last_states = None
+        for element, last_states in self.run(sequence):
             pass
         return last_states
 
     def accepts(
             self,
-            sequence: Sequence[ElementType],
-            error_on_default: bool = True
-    ) -> Set[int]:
+            sequence: Sequence[ElementType]
+    ) -> bool:
         """set of int: Returns the last states contained in the final states of
             the FSM after iterating through the sequence of ElementType."""
-        return self.final_states & self.last(sequence, error_on_default)
+        return bool(self.final_states & self.last(sequence))
