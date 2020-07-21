@@ -11,9 +11,7 @@ expression = Optional(_sign) + One(_digit) + Optional(_exponent)
 
 while True:
     print(
-        list(
-            expression.search_all(
-                input("> ")
-            )
+        expression.split(
+            input("> ")
         )
     )

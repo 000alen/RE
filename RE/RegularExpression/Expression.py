@@ -60,20 +60,20 @@ class Expression:
         from RE.RegularExpression.Choose import Choose
         return Choose(self, expression)
 
-    def compile(self):
+    def compile(self, recompile=False):
         """Generates the FSM."""
-        self.finite_state_machine = FiniteStateMachine(
-            initial_states={0}
-        )
-        base_state, counter = self.build(self.finite_state_machine, 0, 1)
-        self.finite_state_machine.add_final_states({base_state})
+        if self.finite_state_machine is None or recompile:
+            self.finite_state_machine = FiniteStateMachine(
+                initial_states={0}
+            )
+            base_state, counter = self.build(self.finite_state_machine, 0, 1)
+            self.finite_state_machine.add_final_states({base_state})
 
     def match(self, string: str, start: int = 0, end: int = None) -> str:
+        """str: Returns the first match of this RE (self) in the string."""
         assert string
-        if self.finite_state_machine is None:
-            self.compile()
-        if end is None:
-            end = len(string)
+        self.compile()
+        end = len(string) if end is None else end
         last_match = None
         for position in range(start + 1, end + 1):
             if self.finite_state_machine.accepts(string[start:position]):
@@ -82,11 +82,10 @@ class Expression:
             return last_match
 
     def match_all(self, string: str, start: int = 0, end: int = None) -> Iterator[str]:
+        """iter of str: Yields the matches of this RE (self) in the string."""
         assert string
-        if self.finite_state_machine is None:
-            self.compile()
-        if end is None:
-            end = len(string)
+        self.compile()
+        end = len(string) if end is None else end
         while start < end:
             last_match = None
             for position in range(start + 1, end + 1):
@@ -98,11 +97,11 @@ class Expression:
             start += 1
 
     def search(self, string: str, start: int = 0, end: int = None) -> Tuple[int, str]:
+        """tuple of int and str: Returns the first match and its position of
+            this RE (self) in the string."""
         assert string
-        if self.finite_state_machine is None:
-            self.compile()
-        if end is None:
-            end = len(string)
+        self.compile()
+        end = len(string) if end is None else end
         while start < end:
             last_match = None
             for position in range(start + 1, end + 1):
@@ -113,11 +112,11 @@ class Expression:
             start += 1
 
     def search_all(self, string: str, start: int = 0, end: int = None) -> Iterator[Tuple[int, str]]:
+        """iter of tuple of int and str: Yields all the matches and its
+            positions of this RE (self) in the string."""
         assert string
-        if self.finite_state_machine is None:
-            self.compile()
-        if end is None:
-            end = len(string)
+        self.compile()
+        end = len(string) if end is None else end
         while start < end:
             last_match = None
             for position in range(start + 1, end + 1):
@@ -129,8 +128,21 @@ class Expression:
             start += 1
 
     def split(self, string: str, start: int = 0, end: int = None) -> Tuple[str]:
-        # TODO: Implement
-        raise NotImplementedError
+        """tuple of str: Returns sequence that is separated in the matches of
+            this RE (self) from the string."""
+        assert string
+        self.compile()
+        end = len(string) if end is None else end
+        new_sequence = []
+        position = None
+        match = None
+        for position, match in self.search_all(string, start, end):
+            new_sequence.append(
+                string[start:position]
+            )
+            start += len(match) + 1
+        new_sequence.append(string[position + len(match):end])
+        return tuple(new_sequence)
 
     def build(
             self,
@@ -139,4 +151,5 @@ class Expression:
             counter: int,
             end_state: int = None
     ) -> Tuple[int, int]:
+        """tuple of int and int: Builds the expression in the FSM."""
         raise NotImplementedError
