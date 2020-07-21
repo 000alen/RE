@@ -3,11 +3,13 @@ from typing import Dict, Generic, Iterator, Sequence, Set, Tuple, TypeVar, Froze
 __all__ = (
     "EPSILON",
     "SIGMA",
+    "EOF",
     "FiniteStateMachine"
 )
 
 EPSILON = "EPSILON"
 SIGMA = "SIGMA"
+EOF = "EOF"
 
 ElementType = TypeVar("ElementType")
 KeyType = Union[str, ElementType, FrozenSet[ElementType]]
@@ -202,6 +204,7 @@ class FiniteStateMachine(Generic[ElementType]):
                     del pointer
 
     # ---- Operations ----
+    # TODO: Refactor
     def run(
             self,
             sequence: Sequence[ElementType]
@@ -210,27 +213,30 @@ class FiniteStateMachine(Generic[ElementType]):
             sequence of ElementType through the FSM."""
         current_states = self.initial_states.copy()
         new_states = set()
-        for element in sequence:
-            if not current_states:
-                break
+        for element in (*sequence, EOF):
             state = current_states.pop() if current_states else None
             while state is not None:
                 connections = self.get_connections(state)
                 if EPSILON in connections:
-                    current_states.update(connections[EPSILON])
+                    current_states.update(connections[EPSILON] - {state})
+                    if element == EOF:
+                        new_states.update(connections[EPSILON])
                 if SIGMA in connections:
                     new_states.update(connections[SIGMA])
                 if element in connections:
                     new_states.update(connections[element])
-                # TODO: Refactor
                 if any(type(_) is frozenset for _ in connections.keys()):
                     for element_set in connections.keys():
                         if type(element_set) is frozenset and element in element_set:
                             new_states.update(connections[element_set])
                 state = current_states.pop() if current_states else None
+            if element == EOF and not new_states:
+                break
             current_states.update(new_states)
             new_states.clear()
             yield element, frozenset(current_states)
+            if not current_states:
+                break
 
     def last(
             self,

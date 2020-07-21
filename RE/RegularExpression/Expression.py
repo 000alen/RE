@@ -74,24 +74,59 @@ class Expression:
             self.compile()
         if end is None:
             end = len(string)
-        last_offset = None
-        for offset, (_, current_states) in enumerate(self.finite_state_machine.run(string[start:end]), 1):
-            if current_states & self.finite_state_machine.final_states:
-                last_offset = offset
-        if last_offset:
-            return string[start:start + last_offset]
+        last_match = None
+        for position in range(start + 1, end + 1):
+            if self.finite_state_machine.accepts(string[start:position]):
+                last_match = string[start:position]
+        if last_match:
+            return last_match
 
     def match_all(self, string: str, start: int = 0, end: int = None) -> Iterator[str]:
-        # TODO: Implement
-        raise NotImplementedError
+        assert string
+        if self.finite_state_machine is None:
+            self.compile()
+        if end is None:
+            end = len(string)
+        while start < end:
+            last_match = None
+            for position in range(start + 1, end + 1):
+                if self.finite_state_machine.accepts(string[start:position]):
+                    last_match = string[start:position]
+            if last_match:
+                yield last_match
+                start += len(last_match)
+            start += 1
 
     def search(self, string: str, start: int = 0, end: int = None) -> Tuple[int, str]:
-        # TODO: Implement
-        raise NotImplementedError
+        assert string
+        if self.finite_state_machine is None:
+            self.compile()
+        if end is None:
+            end = len(string)
+        while start < end:
+            last_match = None
+            for position in range(start + 1, end + 1):
+                if self.finite_state_machine.accepts(string[start:position]):
+                    last_match = string[start:position]
+            if last_match:
+                return start, last_match
+            start += 1
 
     def search_all(self, string: str, start: int = 0, end: int = None) -> Iterator[Tuple[int, str]]:
-        # TODO: Implement
-        raise NotImplementedError
+        assert string
+        if self.finite_state_machine is None:
+            self.compile()
+        if end is None:
+            end = len(string)
+        while start < end:
+            last_match = None
+            for position in range(start + 1, end + 1):
+                if self.finite_state_machine.accepts(string[start:position]):
+                    last_match = string[start:position]
+            if last_match:
+                yield start, last_match
+                start += len(last_match)
+            start += 1
 
     def split(self, string: str, start: int = 0, end: int = None) -> Tuple[str]:
         # TODO: Implement
