@@ -60,6 +60,9 @@ class FiniteStateMachine(Generic[ElementType]):
     def __delitem__(self, state: int):
         self.remove_connections(state)
 
+    def __call__(self, sequence: Sequence[ElementType]) -> Iterator[Tuple[KeyType, FrozenSet[int]]]:
+        return self.run(sequence)
+
     @property
     def input_set(self) -> FrozenSet[KeyType]:
         """frozenset of KeyType: All the input elements used in the FSM."""
@@ -208,12 +211,13 @@ class FiniteStateMachine(Generic[ElementType]):
     def run(
             self,
             sequence: Sequence[ElementType]
-    ) -> Iterator[Tuple[ElementType, FrozenSet[int]]]:
+    ) -> Iterator[Tuple[KeyType, FrozenSet[int]]]:
         """iter of tuple of ElementType and frozenset of int: Iterates the
             sequence of ElementType through the FSM."""
         current_states = self.initial_states.copy()
         new_states = set()
         for element in (*sequence, EOF):
+            new_states = current_states.copy() if element == EOF else new_states
             state = current_states.pop() if current_states else None
             while state is not None:
                 connections = self.get_connections(state)
@@ -221,14 +225,15 @@ class FiniteStateMachine(Generic[ElementType]):
                     current_states.update(connections[EPSILON] - {state})
                     if element == EOF:
                         new_states.update(connections[EPSILON])
-                if SIGMA in connections:
-                    new_states.update(connections[SIGMA])
-                if element in connections:
-                    new_states.update(connections[element])
-                if any(type(_) is frozenset for _ in connections.keys()):
-                    for element_set in connections.keys():
-                        if type(element_set) is frozenset and element in element_set:
-                            new_states.update(connections[element_set])
+                if element != EOF:
+                    if SIGMA in connections:
+                        new_states.update(connections[SIGMA])
+                    if element in connections:
+                        new_states.update(connections[element])
+                    if any(type(_) is frozenset for _ in connections.keys()):
+                        for element_set in connections.keys():
+                            if type(element_set) is frozenset and element in element_set:
+                                new_states.update(connections[element_set])
                 state = current_states.pop() if current_states else None
             if element == EOF and not new_states:
                 break

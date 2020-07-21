@@ -28,6 +28,9 @@ class Lexer:
     def __delitem__(self, name: str):
         self.remove_expression(name)
 
+    def __call__(self, string: str) -> Iterator[Tuple[int, Token]]:
+        return self.lex(string)
+
     def has_expression(self, name: str) -> bool:
         return name in self.expressions
 
@@ -35,9 +38,11 @@ class Lexer:
         self.expressions[name] = expression
 
     def get_expression(self, name: str) -> Expression:
+        assert self.has_expression(name)
         return self.expressions[name]
 
     def remove_expression(self, name: str):
+        assert self.has_expression(name)
         del self.expressions[name]
 
     def lex(self, string: str) -> Iterator[Tuple[int, Token]]:

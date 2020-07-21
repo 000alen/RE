@@ -11,7 +11,7 @@ _sign = Literal("+") | Literal("-")
 _digit = Literal("0") >> Literal("9")
 _exponent = (Literal('e') | Literal("E")) + Optional(_sign) + One(_digit)
 
-base_type = {
+expressions = {
     "integer": Optional(_sign) + One(_digit) + Optional(_exponent),
     "decimal": Optional(_sign) + Zero(_digit) + Literal(".") + One(_digit) + Optional(_exponent),
     "boolean": Literal("True") | Literal("False"),
@@ -20,6 +20,6 @@ base_type = {
     "whitespace": One(Literal(" "))
 }
 
-lexer = Lexer(**base_type)
-for i, token in lexer.lex(input("> ")):
+lexer = Lexer(**expressions)
+for i, token in lexer(input("> ")):
     print(i, token)
