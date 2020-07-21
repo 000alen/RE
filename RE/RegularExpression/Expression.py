@@ -7,6 +7,7 @@ __all__ = (
 )
 
 
+# TODO: Use abc.ABCMeta and @abstractmethod
 class Expression:
     """Baseclass for Regular Expressions.
 
@@ -40,6 +41,8 @@ class Expression:
         return self.alternate(expression)
 
     def concatenate(self, expression: "Expression") -> "Expression":
+        """Expression: Returns a concatenation (Group) of this RE (self) and
+            the other RE (expression)."""
         from RE.RegularExpression.Group import Group
         if isinstance(expression, Group):
             expression.blocks.insert(0, self)
@@ -47,17 +50,20 @@ class Expression:
         return Group(self, expression)
 
     def repeat(self, i: int) -> "Expression":
+        """Expression: Returns a repetition (Group) of this RE (self)."""
         from RE.RegularExpression.Group import Group
         return Group(self).repeat(i)
 
     def alternate(self, expression: "Expression") -> "Expression":
+        """Expression: Returns a alternation (Choose) of this RE (self) and
+            the other RE (expression)."""
         from RE.RegularExpression.Choose import Choose
         return Choose(self, expression)
 
     def compile(self):
+        """Generates the FSM."""
         self.finite_state_machine = FiniteStateMachine(
-            initial_states={0},
-            error_states={-1}
+            initial_states={0}
         )
         base_state, counter = self.build(self.finite_state_machine, 0, 1)
         self.finite_state_machine.add_final_states({base_state})

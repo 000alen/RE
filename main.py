@@ -20,4 +20,6 @@ expressions = {
 }
 
 for name, expression in expressions.items():
-    print(list(expression.match_all(input(name + "> "))))
+    expression.compile()
+    for element, current_states in expression.finite_state_machine.run(input(name + "> ")):
+        print(element, current_states)

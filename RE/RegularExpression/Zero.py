@@ -37,7 +37,7 @@ class Zero(Expression):
         loop_state = counter
         for i, inner_block in enumerate(self.inner_blocks, 1):
             if i == len(self.inner_blocks) and end_state is not None:
-                for element, to_state in finite_state_machine.get_state(initial_state):
+                for element, to_state in finite_state_machine.get_connections(initial_state).items():
                     if to_state == {loop_state}:
                         finite_state_machine.add_transition(
                             element, end_state, {loop_state})
