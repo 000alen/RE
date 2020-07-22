@@ -12,8 +12,7 @@ class Group(Expression):
     """Group expression implementation.
 
     Attributes:
-        inner_blocks (list of Expression): The expression that are concatenated
-            in order.
+        inner_blocks (list of Expression): The expression that are concatenated in order.
 
     Examples:
         >>> from RE.RegularExpression.Literal import Literal

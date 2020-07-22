@@ -12,9 +12,8 @@ class Choose(Expression):
     """Choose expression implementation.
 
     Attributes:
-        inner_blocks (list of Expression): The options to choose: at a given
-            point, there will be multiple paths in the FSM, and those paths are
-            defined by these blocks.
+        inner_blocks (list of Expression): The options to choose: at a given point, there will be multiple paths in the
+            FSM, and those paths are defined by these blocks.
 
     Examples:
         >>> from RE.RegularExpression.Literal import Literal
@@ -41,7 +40,7 @@ class Choose(Expression):
             counter: int,
             end_state: int = None
     ) -> Tuple[int, int]:
-        for i, inner_block in enumerate(self.inner_blocks, 1):
+        for inner_block in self.inner_blocks:
             end_state, counter = inner_block.build(
                 finite_state_machine,
                 base_state,

@@ -39,7 +39,9 @@ class One(Expression):
                 finite_state_machine,
                 base_state,
                 counter,
-                end_state if i == len(self.inner_blocks) else None
+                end_state
+                if i == len(self.inner_blocks)
+                else None
             )
         _, counter = Zero(*self.inner_blocks).build(
             finite_state_machine,

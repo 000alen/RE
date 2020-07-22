@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from RE.FiniteStateMachine import FiniteStateMachine, EPSILON
+from RE.FiniteStateMachine import FiniteStateMachine, Symbol
 from RE.RegularExpression.Expression import Expression
 from RE.RegularExpression.Group import Group
 
@@ -39,5 +39,5 @@ class Optional(Expression):
         base_state, counter = group.build(
             finite_state_machine, base_state, counter, end_state)
         finite_state_machine.add_transition(
-            EPSILON, initial_state, {base_state})
+            Symbol.EPSILON, initial_state, {base_state})
         return base_state, counter

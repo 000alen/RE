@@ -58,5 +58,6 @@ class Lexer:
                 yield position, token
                 position += len(token.match)
             else:
-                yield position, Token('UNDEFINED', string[position:])
-                return
+                raise Exception
+                # yield position, Token('UNDEFINED', string[position:])
+                # return

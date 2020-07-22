@@ -41,8 +41,7 @@ class Expression:
         return self.alternate(expression)
 
     def concatenate(self, expression: "Expression") -> "Expression":
-        """Expression: Returns a concatenation (Group) of this RE (self) and
-            the other RE (expression)."""
+        """Expression: Returns a concatenation (Group) of this RE (self) and the other RE (expression)."""
         from RE.RegularExpression.Group import Group
         if isinstance(expression, Group):
             expression.blocks.insert(0, self)
@@ -55,8 +54,7 @@ class Expression:
         return Group(self).repeat(i)
 
     def alternate(self, expression: "Expression") -> "Expression":
-        """Expression: Returns a alternation (Choose) of this RE (self) and
-            the other RE (expression)."""
+        """Expression: Returns a alternation (Choose) of this RE (self) and the other RE (expression)."""
         from RE.RegularExpression.Choose import Choose
         return Choose(self, expression)
 
@@ -97,8 +95,7 @@ class Expression:
             start += 1
 
     def search(self, string: str, start: int = 0, end: int = None) -> Tuple[int, str]:
-        """tuple of int and str: Returns the first match and its position of
-            this RE (self) in the string."""
+        """tuple of int and str: Returns the first match and its position of this RE (self) in the string."""
         assert string
         self.compile()
         end = len(string) if end is None else end
@@ -112,8 +109,7 @@ class Expression:
             start += 1
 
     def search_all(self, string: str, start: int = 0, end: int = None) -> Iterator[Tuple[int, str]]:
-        """iter of tuple of int and str: Yields all the matches and its
-            positions of this RE (self) in the string."""
+        """iter of tuple of int and str: Yields all the matches and its positions of this RE (self) in the string."""
         assert string
         self.compile()
         end = len(string) if end is None else end
@@ -128,8 +124,7 @@ class Expression:
             start += 1
 
     def split(self, string: str, start: int = 0, end: int = None) -> Tuple[str]:
-        """tuple of str: Returns sequence that is separated in the matches of
-            this RE (self) from the string."""
+        """tuple of str: Returns sequence that is separated in the matches of this RE (self) from the string."""
         assert string
         self.compile()
         end = len(string) if end is None else end

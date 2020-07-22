@@ -1,3 +1,5 @@
+# TODO: Implement the usage of RE.FiniteStateMachine.Symbol
+
 from RE.FiniteStateMachine import FiniteStateMachine
 
 __all__ = (
